@@ -24,29 +24,13 @@
                     delivery.TotalCost += parcel.ParcelCost;
                 }
 
-                if (delivery.Parcels.Count > 3)
+                IsDiscountedShipping(delivery);
+
+                if (delivery.DiscountedShipping)
                 {
-                    delivery.DiscountedShipping = true;
-
-                    var discountedParcelnumber = 0;
-
-                    if (delivery.Parcels.TrueForAll(p => p.ParcelType == ParcelType.Small) && delivery.Parcels.Count > 3)
-                    {
-                        discountedParcelnumber = delivery.Parcels.Count / 4;
-
-                        delivery.ShippingDiscounts = -delivery.Parcels.OrderBy(x => x.ParcelCost).Take(discountedParcelnumber).Sum(y => y.ParcelCost);
-                    }
-
-                    if (delivery.Parcels.TrueForAll(p => p.ParcelType == ParcelType.Medium) && delivery.Parcels.Count > 2)
-                    {
-                        discountedParcelnumber = delivery.Parcels.Count / 3;
-
-                        delivery.ShippingDiscounts = -delivery.Parcels.OrderBy(x => x.ParcelCost).Take(discountedParcelnumber).Sum(y => y.ParcelCost);
-                    }
+                    CalculateShippingDiscounts(delivery);
                 }
             }
-
-            delivery.TotalCost += delivery.ShippingDiscounts;
 
             if (delivery.SpeedyShipping)
             {
@@ -128,7 +112,6 @@
                     throw new ArgumentException("Invalid parcel type");
             }
         }
-
         private static decimal CalculateSpeedyShippingParcelCost(Delivery delivery)
         {
             delivery.SpeedyShippingCost = delivery.TotalCost;
@@ -169,6 +152,42 @@
                 default:
                     throw new Exception("Invalid parcel type");
             }
+        }
+
+        private static decimal CalculateShippingDiscounts(Delivery delivery)
+        {
+            IsDiscountedShipping(delivery);
+
+            if (delivery.DiscountedShipping)
+            {
+                var discountedParcelnumber = 0;
+
+                if (delivery.Parcels.TrueForAll(p => p.ParcelType == ParcelType.Small) && delivery.Parcels.Count > 3)
+                {
+                    discountedParcelnumber = delivery.Parcels.Count / 4;
+
+                    delivery.ShippingDiscounts = -delivery.Parcels.OrderBy(x => x.ParcelCost).Take(discountedParcelnumber).Sum(y => y.ParcelCost);
+                }
+                if (delivery.Parcels.TrueForAll(p => p.ParcelType == ParcelType.Medium) && delivery.Parcels.Count > 2)
+                {
+                    discountedParcelnumber = delivery.Parcels.Count / 3;
+
+                    delivery.ShippingDiscounts = -delivery.Parcels.OrderBy(x => x.ParcelCost).Take(discountedParcelnumber).Sum(y => y.ParcelCost);
+                }
+            }
+
+            return delivery.TotalCost += delivery.ShippingDiscounts;
+        }
+
+        private static bool IsDiscountedShipping(Delivery delivery)
+        {
+            if (delivery.Parcels.Count > 3)
+            {
+                return delivery.DiscountedShipping = true;
+
+            }
+
+            return delivery.DiscountedShipping = false;
         }
     }
 }
