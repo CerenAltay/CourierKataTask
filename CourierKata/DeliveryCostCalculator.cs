@@ -13,24 +13,13 @@
 
         public Delivery CalculateDeliveryCost(Delivery delivery)
         {
-            var totalCost = 0;
-
             if (delivery.Parcels != null)
             {
                 foreach (var parcel in delivery.Parcels)
                 {
-                    parcel.ParcelType = DefineParcelType(parcel);
-
-                    parcel.ParcelCost = GetParcelCost(parcel);
-
-                    if (IsParcelOverweight(parcel))
-                    {
-                        parcel.OverweightCost = (parcel.ParcelWeight - parcel.ParcelWeightLimit) * 2m;
-
-                        parcel.ParcelCost += parcel.OverweightCost;
-                    }
-
-                    delivery.TotalCost += totalCost + parcel.ParcelCost;
+                    parcel.ParcelCost = CalculateParcelCost(parcel);
+                    
+                    delivery.TotalCost += parcel.ParcelCost;
                 }
             }
 
@@ -41,6 +30,22 @@
 
             return delivery;
         }
+        private decimal CalculateParcelCost(Parcel parcel)
+        {
+            parcel.ParcelType = DefineParcelType(parcel);
+
+            parcel.ParcelCost = GetParcelCost(parcel);
+
+            if (IsParcelOverweight(parcel))
+            {
+                parcel.OverweightCost = (parcel.ParcelWeight - parcel.ParcelWeightLimit) * 2m;
+
+                parcel.ParcelCost += parcel.OverweightCost;
+            }
+
+            return parcel.ParcelCost;
+        }
+
 
         private static ParcelType DefineParcelType(Parcel parcel)
         {

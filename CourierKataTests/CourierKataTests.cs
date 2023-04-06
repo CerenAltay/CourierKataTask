@@ -148,7 +148,7 @@ namespace CourierKataTests
                 new Parcel { ParcelHeight = 1, ParcelWidth = 1, ParcelDepth = 1, ParcelWeight = 2 },
                 new Parcel { ParcelHeight = 15, ParcelWidth = 15, ParcelDepth = 15, ParcelWeight = 4 },
                 new Parcel { ParcelHeight = 15, ParcelWidth = 45, ParcelDepth = 95, ParcelWeight = 7},
-                new Parcel { ParcelHeight = 9, ParcelWidth = 15, ParcelDepth = 101, ParcelWeight = 11 },
+                new Parcel { ParcelHeight = 9, ParcelWidth = 15, ParcelDepth = 101, ParcelWeight = 11 }
             };
 
             var delivery = new Delivery { Parcels = parcels };
