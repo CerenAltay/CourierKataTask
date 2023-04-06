@@ -160,23 +160,42 @@
 
             if (delivery.DiscountedShipping)
             {
-                var discountedParcelnumber = 0;
+                var discountedSmallParcelnumber = 0;
+                var discountedMediumParcelnumber = 0;
+                var discountedMixedParcelnumber = 0;
+                var discountSmallParcel = 0m;
+                var discountMediumParcel = 0m;
+                var discountMixedParcel = 0m;
 
-                if (delivery.Parcels.TrueForAll(p => p.ParcelType == ParcelType.Small) && delivery.Parcels.Count > 3)
+                if (delivery.Parcels.Where(p => p.ParcelType == ParcelType.Small).ToList().Count > 3)
                 {
-                    discountedParcelnumber = delivery.Parcels.Count / 4;
+                    discountedSmallParcelnumber = delivery.Parcels.Count / 4;
 
-                    delivery.ShippingDiscounts = -delivery.Parcels.OrderBy(x => x.ParcelCost).Take(discountedParcelnumber).Sum(y => y.ParcelCost);
+                    discountSmallParcel = -delivery.Parcels.OrderBy(x => x.ParcelCost).Take(discountedSmallParcelnumber).Sum(y => y.ParcelCost);
+
+                    delivery.ShippingDiscounts += discountSmallParcel;
                 }
-                if (delivery.Parcels.TrueForAll(p => p.ParcelType == ParcelType.Medium) && delivery.Parcels.Count > 2)
+                if (delivery.Parcels.Where(p => p.ParcelType == ParcelType.Medium).ToList().Count > 2)
                 {
-                    discountedParcelnumber = delivery.Parcels.Count / 3;
+                    discountedMediumParcelnumber = delivery.Parcels.Count / 3;
 
-                    delivery.ShippingDiscounts = -delivery.Parcels.OrderBy(x => x.ParcelCost).Take(discountedParcelnumber).Sum(y => y.ParcelCost);
+                    discountMediumParcel = -delivery.Parcels.OrderBy(x => x.ParcelCost).Take(discountedMediumParcelnumber).Sum(y => y.ParcelCost);
+
+                    delivery.ShippingDiscounts += discountMediumParcel;
+                }
+                if (delivery.Parcels.Count > 4)
+                {
+                    discountedMixedParcelnumber = (delivery.Parcels.Count - (discountedSmallParcelnumber * 4 + discountedMediumParcelnumber * 3)) / 5;
+
+                    if (discountedMixedParcelnumber > 0)
+                    {
+                        discountMixedParcel = -delivery.Parcels.OrderBy(x => x.ParcelCost).Take(discountedMixedParcelnumber).Sum(y => y.ParcelCost);
+                    }
+
+                    delivery.ShippingDiscounts += discountMixedParcel;
                 }
             }
-
-            return delivery.TotalCost += delivery.ShippingDiscounts;
+            return delivery.TotalCost = delivery.TotalCost + delivery.ShippingDiscounts;
         }
 
         private static bool IsDiscountedShipping(Delivery delivery)
