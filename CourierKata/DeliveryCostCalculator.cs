@@ -6,10 +6,12 @@
         private const decimal MediumSizeCost = 8m;
         private const decimal LargeSizeCost = 15m;
         private const decimal XLSizeCost = 25m;
+        private const decimal HeavySizeCost = 50m;
         private const int SmallWeightLimit = 1;
         private const int MediumWeightLimit = 3;
         private const int LargeWeightLimit = 6;
         private const int XLWeightLimit = 10;
+        private const decimal HeavyWeightLimit = 50;
 
         public Delivery CalculateDeliveryCost(Delivery delivery)
         {
@@ -30,7 +32,7 @@
 
             return delivery;
         }
-        private decimal CalculateParcelCost(Parcel parcel)
+        private static decimal CalculateParcelCost(Parcel parcel)
         {
             parcel.ParcelType = DefineParcelType(parcel);
 
@@ -38,6 +40,8 @@
 
             if (IsParcelOverweight(parcel))
             {
+                //TODO: weight limit for XL parcels
+               
                 parcel.OverweightCost = (parcel.ParcelWeight - parcel.ParcelWeightLimit) * 2m;
 
                 parcel.ParcelCost += parcel.OverweightCost;
@@ -46,12 +50,16 @@
             return parcel.ParcelCost;
         }
 
-
         private static ParcelType DefineParcelType(Parcel parcel)
         {
             if (parcel.ParcelHeight <= 0 || parcel.ParcelHeight <= 0 || parcel.ParcelDepth <= 0)
             {
                 throw new ArgumentException("Invalid parcel size");
+            }
+
+            if (parcel.ParcelWeight >= 50m)
+            {
+                return ParcelType.Heavy;
             }
 
             if (parcel.ParcelHeight < 10 && parcel.ParcelHeight < 10 && parcel.ParcelDepth < 10)
@@ -89,6 +97,9 @@
 
                 case ParcelType.XL:
                     return XLSizeCost;
+
+                case ParcelType.Heavy:
+                    return HeavySizeCost;
 
                 default:
                     throw new ArgumentException("Invalid parcel type");
@@ -128,6 +139,9 @@
 
                 case ParcelType.XL:
                     return XLWeightLimit;
+
+                case ParcelType.Heavy:
+                    return HeavyWeightLimit;
 
                 default:
                     throw new Exception("Invalid parcel type");
