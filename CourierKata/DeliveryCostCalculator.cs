@@ -23,6 +23,12 @@
                 }
             }
 
+            if (delivery.SpeedyShipping)
+            {
+                delivery.SpeedyShippingCost = delivery.TotalCost;
+                delivery.TotalCost += delivery.SpeedyShippingCost;
+            }
+
             return delivery;
         }
 
