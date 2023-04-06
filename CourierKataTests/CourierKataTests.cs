@@ -1,4 +1,5 @@
 using CourierKata;
+using System;
 using System.Collections.Generic;
 using Xunit;
 
@@ -71,6 +72,24 @@ namespace CourierKataTests
                 }
                 );
             Assert.Equal(51, result.TotalCost);
+        }
+
+        [Fact]
+        public void CalculateDeliveryCost_InvalidParcelSize_ThrowsExceptionWithMessage()
+        {
+            //Arrange
+            var parcels = new List<Parcel> {
+                new Parcel { ParcelHeight = 1, ParcelWidth = 1, ParcelDepth = -1 },
+            };
+            var delivery = new Delivery { Parcels = parcels };
+            var deliveryCalculator = new DeliveryCostCalculator();
+
+            //Act
+            var result = deliveryCalculator.CalculateDeliveryCost(delivery);
+
+            //Assert
+            var exception = Assert.Throws<ArgumentException>(() => result);
+            Assert.Equal("Invalid parcel size", exception.Message);
         }
     }
 }
