@@ -6,6 +6,10 @@
         private const decimal MediumSizeCost = 8m;
         private const decimal LargeSizeCost = 15m;
         private const decimal XLSizeCost = 25m;
+        private const int SmallWeightLimit = 1;
+        private const int MediumWeightLimit = 3;
+        private const int LargeWeightLimit = 6;
+        private const int XLWeightLimit = 10;
 
         public Delivery CalculateDeliveryCost(Delivery delivery)
         {
@@ -18,6 +22,13 @@
                     parcel.ParcelType = DefineParcelType(parcel);
 
                     parcel.ParcelCost = GetParcelCost(parcel);
+
+                    if (IsParcelOverweight(parcel))
+                    {
+                        parcel.OverweightCost = (parcel.ParcelWeight - parcel.ParcelWeightLimit) * 2m;
+
+                        parcel.ParcelCost += parcel.OverweightCost;
+                    }
 
                     delivery.TotalCost += totalCost + parcel.ParcelCost;
                 }
@@ -86,6 +97,36 @@
             delivery.TotalCost += delivery.SpeedyShippingCost;
 
             return delivery.TotalCost;
+        }
+
+        private static bool IsParcelOverweight(Parcel parcel)
+        {
+            parcel.ParcelWeightLimit = GetWeightLimit(parcel.ParcelType);
+
+            parcel.IsOverweight = parcel.ParcelWeight > parcel.ParcelWeightLimit;
+
+            return parcel.IsOverweight;
+        }
+
+        private static decimal GetWeightLimit(ParcelType ParcelType)
+        {
+            switch (ParcelType)
+            {
+                case ParcelType.Small:
+                    return SmallWeightLimit;
+
+                case ParcelType.Medium:
+                    return MediumWeightLimit;
+
+                case ParcelType.Large:
+                    return LargeWeightLimit;
+
+                case ParcelType.XL:
+                    return XLWeightLimit;
+
+                default:
+                    throw new Exception("Invalid parcel type");
+            }
         }
     }
 }
