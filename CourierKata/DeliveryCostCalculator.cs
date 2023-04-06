@@ -20,10 +20,26 @@
                 foreach (var parcel in delivery.Parcels)
                 {
                     parcel.ParcelCost = CalculateParcelCost(parcel);
-                    
+
                     delivery.TotalCost += parcel.ParcelCost;
                 }
+
+                if (delivery.Parcels.Count > 3)
+                {
+                    delivery.DiscountedShipping = true;
+
+                    var discountedParcelnumber = 0;
+
+                    if (delivery.Parcels.TrueForAll(p => p.ParcelType == ParcelType.Small) && delivery.Parcels.Count > 3)
+                    {
+                        discountedParcelnumber = delivery.Parcels.Count / 4;
+
+                        delivery.ShippingDiscounts = -delivery.Parcels.OrderBy(x => x.ParcelCost).Take(discountedParcelnumber).Sum(y => y.ParcelCost);
+                    }
+                }
             }
+
+            delivery.TotalCost += delivery.ShippingDiscounts;
 
             if (delivery.SpeedyShipping)
             {
@@ -41,7 +57,7 @@
             if (IsParcelOverweight(parcel))
             {
                 //TODO: weight limit for XL parcels
-               
+
                 parcel.OverweightCost = (parcel.ParcelWeight - parcel.ParcelWeightLimit) * 2m;
 
                 parcel.ParcelCost += parcel.OverweightCost;
