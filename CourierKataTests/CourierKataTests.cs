@@ -84,11 +84,8 @@ namespace CourierKataTests
             var delivery = new Delivery { Parcels = parcels };
             var deliveryCalculator = new DeliveryCostCalculator();
 
-            //Act
-            var result = deliveryCalculator.CalculateDeliveryCost(delivery);
-
             //Assert
-            var exception = Assert.Throws<ArgumentException>(() => result);
+            var exception = Assert.Throws<ArgumentException>(() => deliveryCalculator.CalculateDeliveryCost(delivery));
             Assert.Equal("Invalid parcel size", exception.Message);
         }
     }
