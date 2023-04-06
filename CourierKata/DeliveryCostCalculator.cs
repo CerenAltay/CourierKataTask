@@ -28,6 +28,11 @@
 
         private static ParcelType DefineParcelType(Parcel parcel)
         {
+            if (parcel.ParcelHeight <= 0 || parcel.ParcelHeight <= 0 || parcel.ParcelDepth <= 0)
+            {
+                throw new ArgumentException("Invalid parcel size");
+            }
+
             if (parcel.ParcelHeight < 10 && parcel.ParcelHeight < 10 && parcel.ParcelDepth < 10)
             {
                 parcel.ParcelType = ParcelType.Small;
