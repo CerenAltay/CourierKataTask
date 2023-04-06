@@ -7,5 +7,9 @@
         public double ParcelDepth { get; set; }
         public ParcelType ParcelType { get; set; }
         public decimal ParcelCost { get; set; }
+        public decimal ParcelWeightLimit { get; set; }
+        public bool IsOverweight { get; set; }
+        public decimal ParcelWeight { get; set; }
+        public decimal OverweightCost { get; set; }
     }
 }

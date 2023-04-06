@@ -137,5 +137,54 @@ namespace CourierKataTests
             Assert.Equal(102, result.TotalCost);
         }
 
+
+        //STEP 3
+
+        [Fact]
+        public void CalculateDeliveryCost_OverweightParcel_ReturnsDeliveryWithOverweightCosts()
+        {
+            //Arrange
+            var parcels = new List<Parcel> {
+                new Parcel { ParcelHeight = 1, ParcelWidth = 1, ParcelDepth = 1, ParcelWeight = 2 },
+                new Parcel { ParcelHeight = 15, ParcelWidth = 15, ParcelDepth = 15, ParcelWeight = 4 },
+                new Parcel { ParcelHeight = 15, ParcelWidth = 45, ParcelDepth = 95, ParcelWeight = 7},
+                new Parcel { ParcelHeight = 9, ParcelWidth = 15, ParcelDepth = 101, ParcelWeight = 11 },
+            };
+
+            var delivery = new Delivery { Parcels = parcels };
+            var deliveryCalculator = new DeliveryCostCalculator();
+
+            //Act
+            var result = deliveryCalculator.CalculateDeliveryCost(delivery);
+
+            //Assert
+            Assert.Collection(delivery.Parcels,
+                item =>
+                {
+                    Assert.Equal(ParcelType.Small, item.ParcelType);
+                    Assert.True(item.IsOverweight);
+                    Assert.Equal(5, item.ParcelCost);
+                },
+                item =>
+                {
+                    Assert.Equal(ParcelType.Medium, item.ParcelType);
+                    Assert.True(item.IsOverweight);
+                    Assert.Equal(10, item.ParcelCost);
+                },
+                 item =>
+                 {
+                     Assert.Equal(ParcelType.Large, item.ParcelType);
+                     Assert.True(item.IsOverweight);
+                     Assert.Equal(17, item.ParcelCost);
+                 },
+                item =>
+                {
+                    Assert.Equal(ParcelType.XL, item.ParcelType);
+                    Assert.True(item.IsOverweight);
+                    Assert.Equal(27, item.ParcelCost);
+                });
+
+            Assert.Equal(59, result.TotalCost);
+        }
     }
 }
