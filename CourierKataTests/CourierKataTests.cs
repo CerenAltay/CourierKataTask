@@ -335,5 +335,62 @@ namespace CourierKataTests
             Assert.Equal(-16, result.ShippingDiscounts);
             Assert.Equal(42, result.TotalCost);
         }
+
+
+        [Fact]
+        public void CalculateDeliveryCost_MixedParcelDiscounts_ReturnsDeliveryWithDiscounts()
+        {
+            //Arrange
+            var parcels = new List<Parcel> {
+                new Parcel { ParcelHeight = 1, ParcelWidth = 1, ParcelDepth = 1, ParcelWeight = 1 },
+                new Parcel { ParcelHeight = 1, ParcelWidth = 1, ParcelDepth = 1, ParcelWeight = 1 },
+                new Parcel { ParcelHeight = 1, ParcelWidth = 1, ParcelDepth = 1, ParcelWeight = 1 },
+                new Parcel { ParcelHeight = 40, ParcelWidth = 30, ParcelDepth = 20, ParcelWeight = 3 },
+                new Parcel { ParcelHeight = 40, ParcelWidth = 30, ParcelDepth = 20, ParcelWeight = 3 },
+                new Parcel { ParcelHeight = 80, ParcelWidth = 90, ParcelDepth = 60, ParcelWeight = 7 }
+            };
+            var delivery = new Delivery { Parcels = parcels };
+            var deliveryCalculator = new DeliveryCostCalculator();
+
+            //Act
+            var result = deliveryCalculator.CalculateDeliveryCost(delivery);
+
+            //Assert
+            Assert.Collection(delivery.Parcels,
+                item =>
+                {
+                    Assert.Equal(ParcelType.Small, item.ParcelType);
+                    Assert.Equal(3, item.ParcelCost);
+                },
+                item =>
+                {
+                    Assert.Equal(ParcelType.Small, item.ParcelType);
+                    Assert.Equal(3, item.ParcelCost);
+                },
+                 item =>
+                 {
+                     Assert.Equal(ParcelType.Small, item.ParcelType);
+                     Assert.Equal(3, item.ParcelCost);
+                 },
+                item =>
+                {
+                    Assert.Equal(ParcelType.Medium, item.ParcelType);
+                    Assert.Equal(8, item.ParcelCost);
+                },
+                 item =>
+                 {
+                     Assert.Equal(ParcelType.Medium, item.ParcelType);
+                     Assert.Equal(8, item.ParcelCost);
+                 },
+                item =>
+                {
+                    Assert.Equal(ParcelType.Large, item.ParcelType);
+                    Assert.Equal(17, item.ParcelCost);
+                });
+
+            Assert.True(result.DiscountedShipping);
+            Assert.Equal(-3, result.ShippingDiscounts);
+            Assert.Equal(36, result.TotalCost);
+        }
     }
 }
