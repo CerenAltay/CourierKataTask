@@ -36,6 +36,13 @@
 
                         delivery.ShippingDiscounts = -delivery.Parcels.OrderBy(x => x.ParcelCost).Take(discountedParcelnumber).Sum(y => y.ParcelCost);
                     }
+
+                    if (delivery.Parcels.TrueForAll(p => p.ParcelType == ParcelType.Medium) && delivery.Parcels.Count > 2)
+                    {
+                        discountedParcelnumber = delivery.Parcels.Count / 3;
+
+                        delivery.ShippingDiscounts = -delivery.Parcels.OrderBy(x => x.ParcelCost).Take(discountedParcelnumber).Sum(y => y.ParcelCost);
+                    }
                 }
             }
 
