@@ -186,5 +186,45 @@ namespace CourierKataTests
 
             Assert.Equal(59, result.TotalCost);
         }
+
+
+        //STEP 4
+
+        [Fact]
+        public void CalculateDeliveryCost_HeavyParcel_ReturnsDeliveryWithCosts()
+        {
+            //Arrange
+            var parcels = new List<Parcel> {
+                new Parcel { ParcelHeight = 1, ParcelWidth = 1, ParcelDepth = 1, ParcelWeight = 2 },
+                new Parcel { ParcelHeight = 1, ParcelWidth = 1, ParcelDepth = 1, ParcelWeight = 1 },
+                new Parcel { ParcelHeight = 25, ParcelWidth = 10, ParcelDepth = 18, ParcelWeight = 55 }
+            };
+
+            var delivery = new Delivery { Parcels = parcels };
+            var deliveryCalculator = new DeliveryCostCalculator();
+
+            //Act
+            var result = deliveryCalculator.CalculateDeliveryCost(delivery);
+
+            //Assert
+            Assert.Collection(delivery.Parcels,
+                item =>
+                {
+                    Assert.Equal(ParcelType.Small, item.ParcelType);
+                    Assert.Equal(5, item.ParcelCost);
+                },
+                item =>
+                {
+                    Assert.Equal(ParcelType.Small, item.ParcelType);
+                    Assert.Equal(3, item.ParcelCost);
+                },
+                item =>
+                {
+                    Assert.Equal(ParcelType.Heavy, item.ParcelType);
+                    Assert.Equal(60, item.ParcelCost);
+                });
+
+            Assert.Equal(68, result.TotalCost);
+        }
     }
 }
