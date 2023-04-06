@@ -226,5 +226,51 @@ namespace CourierKataTests
 
             Assert.Equal(68, result.TotalCost);
         }
+
+        //Step 5
+
+        [Fact]
+        public void CalculateDeliveryCost_SmallParcelDiscounts_ReturnsDeliveryWithDiscounts()
+        {
+            //Arrange
+            var parcels = new List<Parcel> {
+                new Parcel { ParcelHeight = 1, ParcelWidth = 1, ParcelDepth = 1, ParcelWeight = 1 },
+                new Parcel { ParcelHeight = 6, ParcelWidth = 5, ParcelDepth = 3, ParcelWeight = 2 },
+                new Parcel { ParcelHeight = 1, ParcelWidth = 1, ParcelDepth = 1, ParcelWeight = 1 },
+                new Parcel { ParcelHeight = 6, ParcelWidth = 5, ParcelDepth = 3, ParcelWeight = 4 }
+            };
+            var delivery = new Delivery { Parcels = parcels };
+            var deliveryCalculator = new DeliveryCostCalculator();
+
+            //Act
+            var result = deliveryCalculator.CalculateDeliveryCost(delivery);
+
+            //Assert
+            Assert.Collection(delivery.Parcels,
+                item =>
+                {
+                    Assert.Equal(ParcelType.Small, item.ParcelType);
+                    Assert.Equal(3, item.ParcelCost);
+                },
+                item =>
+                {
+                    Assert.Equal(ParcelType.Small, item.ParcelType);
+                    Assert.Equal(5, item.ParcelCost);
+                },
+                 item =>
+                 {
+                     Assert.Equal(ParcelType.Small, item.ParcelType);
+                     Assert.Equal(3, item.ParcelCost);
+                 },
+                item =>
+                {
+                    Assert.Equal(ParcelType.Small, item.ParcelType);
+                    Assert.Equal(9, item.ParcelCost);
+                });
+
+            Assert.True(result.DiscountedShipping);
+            Assert.Equal(-3, result.ShippingDiscounts);
+            Assert.Equal(17, result.TotalCost);
+        }
     }
 }
