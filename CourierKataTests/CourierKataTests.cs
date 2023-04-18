@@ -196,7 +196,7 @@ namespace CourierKataTests
                 item =>
                 {
                     Assert.Equal(ParcelType.Heavy, item.ParcelType);
-                    Assert.Equal(60, item.ParcelCost);
+                    Assert.Equal(50, item.ParcelCost);
                 });
 
             Assert.Equal(50, result.TotalCost);
@@ -251,7 +251,6 @@ namespace CourierKataTests
                     Assert.Equal(5, item.ParcelCost);
                 });
 
-            //Assert.True(result.DiscountedShipping);
             Assert.Equal(-3, result.TotalShippingDiscount);
             Assert.Equal(16, result.TotalCost);
         }
@@ -308,7 +307,6 @@ namespace CourierKataTests
                      Assert.Equal(10, item.ParcelCost);
                  });
 
-           // Assert.True(result.DiscountedShipping);
             Assert.Equal(-18, result.TotalShippingDiscount);
             Assert.Equal(36, result.TotalCost);
         }
@@ -360,11 +358,11 @@ namespace CourierKataTests
                  item =>
                 {
                     Assert.Equal(ParcelType.Small, item.ParcelType);
-                    Assert.Equal(3, item.ParcelCost);
+                    Assert.Equal(3, item.ParcelCost); //discounted
                 },
                  item =>
                  {
-                     Assert.Equal(ParcelType.Small, item.ParcelType);
+                     Assert.Equal(ParcelType.Small, item.ParcelType); //mixed p dsc
                      Assert.Equal(3, item.ParcelCost);
                  },
                 item =>
@@ -384,7 +382,7 @@ namespace CourierKataTests
                   },
                  item =>
                  {
-                     Assert.Equal(ParcelType.Medium, item.ParcelType);
+                     Assert.Equal(ParcelType.Medium, item.ParcelType); //discounted
                      Assert.Equal(10, item.ParcelCost);
                  },
                     item =>
@@ -409,8 +407,61 @@ namespace CourierKataTests
              }
             );
 
-            Assert.Equal(-3, result.TotalShippingDiscount);
-            Assert.Equal(37, result.TotalCost);
+            Assert.Equal(-16, result.TotalShippingDiscount);
+            Assert.Equal(102, result.TotalCost);
         }
+
+        [Fact]
+        public void CalculateDeliveryCost_DiscountedSpeedyShipping_ReturnsSpeedyShippingCostAfterDiscounts()
+        {
+            //Arrange
+            var parcels = new List<Parcel>
+        {
+            _fixture.SmallParcel,
+            _fixture.SmallOverweightParcel,
+            _fixture.SmallParcel,
+            _fixture.SmallParcel,
+            _fixture.SmallOverweightParcel
+        };
+
+
+            var delivery = new Delivery { Parcels = parcels, SpeedyShipping = true };
+
+            //Act
+            var result = _deliveryCalculator.CalculateDeliveryCost(delivery);
+
+            //Assert
+            Assert.Collection(delivery.Parcels,
+                item =>
+                {
+                    Assert.Equal(ParcelType.Small, item.ParcelType);
+                    Assert.Equal(3, item.ParcelCost);
+                },
+                item =>
+                {
+                    Assert.Equal(ParcelType.Small, item.ParcelType);
+                    Assert.Equal(5, item.ParcelCost);
+                },
+                 item =>
+                 {
+                     Assert.Equal(ParcelType.Small, item.ParcelType);
+                     Assert.Equal(3, item.ParcelCost);
+                 },
+                   item =>
+                   {
+                       Assert.Equal(ParcelType.Small, item.ParcelType);
+                       Assert.Equal(3, item.ParcelCost);
+                   },
+                item =>
+                {
+                    Assert.Equal(ParcelType.Small, item.ParcelType);
+                    Assert.Equal(5, item.ParcelCost);
+                });
+
+            Assert.Equal(16, result.SpeedyShippingCost);
+            Assert.Equal(-3, result.TotalShippingDiscount);
+            Assert.Equal(32, result.TotalCost);
+        }
+
     }
 }

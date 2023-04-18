@@ -12,6 +12,6 @@
         public bool IsOverweight { get; set; }
         public decimal ParcelWeight { get; set; }
         public ParcelType ParcelType { get; set; }
-        public decimal OverweightCost { get; set; }
+        //public decimal OverweightCost { get; set; }
     }
 }
