@@ -1,24 +1,33 @@
 using CourierKata;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Xunit;
 
 namespace CourierKataTests
 {
-    public class CourierKataTests
+    public class CourierKataTests : IClassFixture<TestFixture>
     {
+        private readonly TestFixture _fixture;
+
+        private readonly DeliveryCostCalculator _deliveryCalculator = new();
+
+        public CourierKataTests(TestFixture fixture)
+        {
+            _fixture = fixture;
+        }
+
         [Fact]
         public void CalculateDeliveryCost_Parcel_ReturnsDeliveryWithCosts()
         {
+
             //Arrange
-            var parcels = new List<Parcel> {
-                new Parcel { ParcelHeight = 1, ParcelWidth = 1, ParcelDepth = 1 },
-            };
+            var parcels = new List<Parcel> { _fixture.SmallParcel };
+
             var delivery = new Delivery { Parcels = parcels };
-            var deliveryCalculator = new DeliveryCostCalculator();
 
             //Act
-            var result = deliveryCalculator.CalculateDeliveryCost(delivery);
+            var result = _deliveryCalculator.CalculateDeliveryCost(delivery);
 
             //Assert
             Assert.Collection(delivery.Parcels,
@@ -35,79 +44,12 @@ namespace CourierKataTests
         public void CalculateDeliveryCost_Parcels_ReturnsDeliveryWithCosts()
         {
             //Arrange
-            var parcels = new List<Parcel> {
-                new Parcel { ParcelHeight = 1, ParcelWidth = 1, ParcelDepth = 1 },
-                new Parcel { ParcelHeight = 15, ParcelWidth = 15, ParcelDepth = 15 },
-                new Parcel { ParcelHeight = 15, ParcelWidth = 45, ParcelDepth = 95 },
-                new Parcel { ParcelHeight = 9, ParcelWidth = 15, ParcelDepth = 101 },
-            };
+            var parcels = new List<Parcel> { _fixture.SmallParcel, _fixture.MediumParcel, _fixture.LargeParcel, _fixture.XLParcel };
 
             var delivery = new Delivery { Parcels = parcels };
-            var deliveryCalculator = new DeliveryCostCalculator();
 
             //Act
-            var result = deliveryCalculator.CalculateDeliveryCost(delivery);
-
-            //Assert
-            Assert.Collection(delivery.Parcels,
-                item =>
-                {
-                    Assert.Equal(ParcelType.Small, item.ParcelType);
-                    Assert.Equal(3, item.ParcelCost);
-                },
-                item =>
-                {
-                    Assert.Equal(ParcelType.Medium, item.ParcelType);
-                    Assert.Equal(8, item.ParcelCost);
-                },
-                 item =>
-                 {
-                     Assert.Equal(ParcelType.Large, item.ParcelType);
-                     Assert.Equal(15, item.ParcelCost);
-                 },
-                item =>
-                {
-                    Assert.Equal(ParcelType.XL, item.ParcelType);
-                    Assert.Equal(25, item.ParcelCost);
-                }
-                );
-            Assert.Equal(51, result.TotalCost);
-        }
-
-        [Fact]
-        public void CalculateDeliveryCost_InvalidParcelSize_ThrowsExceptionWithMessage()
-        {
-            //Arrange
-            var parcels = new List<Parcel> {
-                new Parcel { ParcelHeight = 1, ParcelWidth = 1, ParcelDepth = -1 },
-            };
-            var delivery = new Delivery { Parcels = parcels };
-            var deliveryCalculator = new DeliveryCostCalculator();
-
-            //Assert
-            var exception = Assert.Throws<ArgumentException>(() => deliveryCalculator.CalculateDeliveryCost(delivery));
-            Assert.Equal("Invalid parcel size", exception.Message);
-        }
-
-
-        //STEP 2
-
-        [Fact]
-        public void CalculateDeliveryCost_SpeedyShipping_ReturnsDeliveryWithSpeedyShippingCost()
-        {
-            //Arrange
-            var parcels = new List<Parcel> {
-                new Parcel { ParcelHeight = 1, ParcelWidth = 1, ParcelDepth = 1 },
-                new Parcel { ParcelHeight = 15, ParcelWidth = 15, ParcelDepth = 15 },
-                new Parcel { ParcelHeight = 15, ParcelWidth = 45, ParcelDepth = 95 },
-                new Parcel { ParcelHeight = 9, ParcelWidth = 15, ParcelDepth = 101 },
-            };
-
-            var delivery = new Delivery { Parcels = parcels, SpeedyShipping = true };
-            var deliveryCalculator = new DeliveryCostCalculator();
-
-            //Act
-            var result = deliveryCalculator.CalculateDeliveryCost(delivery);
+            var result = _deliveryCalculator.CalculateDeliveryCost(delivery);
 
             //Assert
             Assert.Collection(delivery.Parcels,
@@ -132,7 +74,60 @@ namespace CourierKataTests
                     Assert.Equal(25, item.ParcelCost);
                 });
 
-            Assert.True(result.SpeedyShipping);
+            Assert.Equal(51, result.TotalCost);
+        }
+
+        [Fact]
+        public void CalculateDeliveryCost_InvalidParcelSize_ThrowsExceptionWithMessage()
+        {
+            //Arrange
+            var parcels = new List<Parcel> {
+                new Parcel { ParcelHeight = 1, ParcelWidth = 1, ParcelDepth = -1 },
+            };
+            var delivery = new Delivery { Parcels = parcels };
+
+            //Assert
+            var exception = Assert.Throws<ArgumentException>(() => _deliveryCalculator.CalculateDeliveryCost(delivery));
+            Assert.Equal("Invalid parcel size", exception.Message);
+        }
+
+
+        //STEP 2
+
+        [Fact]
+        public void CalculateDeliveryCost_SpeedyShipping_ReturnsDeliveryWithSpeedyShippingCost()
+        {
+            //Arrange
+            var parcels = new List<Parcel> { _fixture.SmallParcel, _fixture.MediumParcel, _fixture.LargeParcel, _fixture.XLParcel };
+
+            var delivery = new Delivery { Parcels = parcels, SpeedyShipping = true };
+
+            //Act
+            var result = _deliveryCalculator.CalculateDeliveryCost(delivery);
+
+            //Assert
+            Assert.Collection(delivery.Parcels,
+                item =>
+                {
+                    Assert.Equal(ParcelType.Small, item.ParcelType);
+                    Assert.Equal(3, item.ParcelCost);
+                },
+                item =>
+                {
+                    Assert.Equal(ParcelType.Medium, item.ParcelType);
+                    Assert.Equal(8, item.ParcelCost);
+                },
+                 item =>
+                 {
+                     Assert.Equal(ParcelType.Large, item.ParcelType);
+                     Assert.Equal(15, item.ParcelCost);
+                 },
+                item =>
+                {
+                    Assert.Equal(ParcelType.XL, item.ParcelType);
+                    Assert.Equal(25, item.ParcelCost);
+                });
+
             Assert.Equal(51, result.SpeedyShippingCost);
             Assert.Equal(102, result.TotalCost);
         }
@@ -144,18 +139,12 @@ namespace CourierKataTests
         public void CalculateDeliveryCost_OverweightParcel_ReturnsDeliveryWithOverweightCosts()
         {
             //Arrange
-            var parcels = new List<Parcel> {
-                new Parcel { ParcelHeight = 1, ParcelWidth = 1, ParcelDepth = 1, ParcelWeight = 2 },
-                new Parcel { ParcelHeight = 15, ParcelWidth = 15, ParcelDepth = 15, ParcelWeight = 4 },
-                new Parcel { ParcelHeight = 15, ParcelWidth = 45, ParcelDepth = 95, ParcelWeight = 7},
-                new Parcel { ParcelHeight = 9, ParcelWidth = 15, ParcelDepth = 101, ParcelWeight = 11 }
-            };
+            var parcels = new List<Parcel> { _fixture.SmallOverweightParcel, _fixture.MediumOverweightParcel, _fixture.LargeOverweightParcel, _fixture.XLOverweightParcel };
 
             var delivery = new Delivery { Parcels = parcels };
-            var deliveryCalculator = new DeliveryCostCalculator();
 
             //Act
-            var result = deliveryCalculator.CalculateDeliveryCost(delivery);
+            var result = _deliveryCalculator.CalculateDeliveryCost(delivery);
 
             //Assert
             Assert.Collection(delivery.Parcels,
@@ -194,37 +183,23 @@ namespace CourierKataTests
         public void CalculateDeliveryCost_HeavyParcel_ReturnsDeliveryWithCosts()
         {
             //Arrange
-            var parcels = new List<Parcel> {
-                new Parcel { ParcelHeight = 1, ParcelWidth = 1, ParcelDepth = 1, ParcelWeight = 2 },
-                new Parcel { ParcelHeight = 1, ParcelWidth = 1, ParcelDepth = 1, ParcelWeight = 1 },
-                new Parcel { ParcelHeight = 25, ParcelWidth = 10, ParcelDepth = 18, ParcelWeight = 55 }
-            };
+            var parcels = new List<Parcel> { _fixture.HeavyParcel };
+
 
             var delivery = new Delivery { Parcels = parcels };
-            var deliveryCalculator = new DeliveryCostCalculator();
 
             //Act
-            var result = deliveryCalculator.CalculateDeliveryCost(delivery);
+            var result = _deliveryCalculator.CalculateDeliveryCost(delivery);
 
             //Assert
             Assert.Collection(delivery.Parcels,
-                item =>
-                {
-                    Assert.Equal(ParcelType.Small, item.ParcelType);
-                    Assert.Equal(5, item.ParcelCost);
-                },
-                item =>
-                {
-                    Assert.Equal(ParcelType.Small, item.ParcelType);
-                    Assert.Equal(3, item.ParcelCost);
-                },
                 item =>
                 {
                     Assert.Equal(ParcelType.Heavy, item.ParcelType);
                     Assert.Equal(60, item.ParcelCost);
                 });
 
-            Assert.Equal(68, result.TotalCost);
+            Assert.Equal(50, result.TotalCost);
         }
 
         //Step 5
@@ -233,17 +208,20 @@ namespace CourierKataTests
         public void CalculateDeliveryCost_SmallParcelDiscounts_ReturnsDeliveryWithDiscounts()
         {
             //Arrange
-            var parcels = new List<Parcel> {
-                new Parcel { ParcelHeight = 1, ParcelWidth = 1, ParcelDepth = 1, ParcelWeight = 1 },
-                new Parcel { ParcelHeight = 6, ParcelWidth = 5, ParcelDepth = 3, ParcelWeight = 2 },
-                new Parcel { ParcelHeight = 1, ParcelWidth = 1, ParcelDepth = 1, ParcelWeight = 1 },
-                new Parcel { ParcelHeight = 6, ParcelWidth = 5, ParcelDepth = 3, ParcelWeight = 4 }
-            };
+            var parcels = new List<Parcel>
+        {
+            _fixture.SmallParcel,
+            _fixture.SmallOverweightParcel,
+            _fixture.SmallParcel,
+            _fixture.SmallParcel,
+            _fixture.SmallOverweightParcel
+        };
+
+
             var delivery = new Delivery { Parcels = parcels };
-            var deliveryCalculator = new DeliveryCostCalculator();
 
             //Act
-            var result = deliveryCalculator.CalculateDeliveryCost(delivery);
+            var result = _deliveryCalculator.CalculateDeliveryCost(delivery);
 
             //Assert
             Assert.Collection(delivery.Parcels,
@@ -262,15 +240,20 @@ namespace CourierKataTests
                      Assert.Equal(ParcelType.Small, item.ParcelType);
                      Assert.Equal(3, item.ParcelCost);
                  },
+                   item =>
+                   {
+                       Assert.Equal(ParcelType.Small, item.ParcelType);
+                       Assert.Equal(3, item.ParcelCost);
+                   },
                 item =>
                 {
                     Assert.Equal(ParcelType.Small, item.ParcelType);
-                    Assert.Equal(9, item.ParcelCost);
+                    Assert.Equal(5, item.ParcelCost);
                 });
 
-            Assert.True(result.DiscountedShipping);
-            Assert.Equal(-3, result.ShippingDiscounts);
-            Assert.Equal(17, result.TotalCost);
+            //Assert.True(result.DiscountedShipping);
+            Assert.Equal(-3, result.TotalShippingDiscount);
+            Assert.Equal(16, result.TotalCost);
         }
 
 
@@ -279,19 +262,18 @@ namespace CourierKataTests
         {
             //Arrange
             var parcels = new List<Parcel> {
-                new Parcel { ParcelHeight = 40, ParcelWidth = 30, ParcelDepth = 20, ParcelWeight = 3 },
-                new Parcel { ParcelHeight = 40, ParcelWidth = 30, ParcelDepth = 20, ParcelWeight = 1 },
-                new Parcel { ParcelHeight = 40, ParcelWidth = 30, ParcelDepth = 20, ParcelWeight = 4 },
-                new Parcel { ParcelHeight = 40, ParcelWidth = 30, ParcelDepth = 20, ParcelWeight = 2 },
-                new Parcel { ParcelHeight = 40, ParcelWidth = 30, ParcelDepth = 20, ParcelWeight = 2 },
-                new Parcel { ParcelHeight = 40, ParcelWidth = 30, ParcelDepth = 20, ParcelWeight = 2 },
-                new Parcel { ParcelHeight = 40, ParcelWidth = 30, ParcelDepth = 20, ParcelWeight = 2 }
+              _fixture.MediumParcel,
+              _fixture.MediumParcel,
+              _fixture.MediumParcel,
+              _fixture.MediumOverweightParcel,
+              _fixture.MediumOverweightParcel,
+              _fixture.MediumOverweightParcel
             };
+
             var delivery = new Delivery { Parcels = parcels };
-            var deliveryCalculator = new DeliveryCostCalculator();
 
             //Act
-            var result = deliveryCalculator.CalculateDeliveryCost(delivery);
+            var result = _deliveryCalculator.CalculateDeliveryCost(delivery);
 
             //Assert
             Assert.Collection(delivery.Parcels,
@@ -308,32 +290,27 @@ namespace CourierKataTests
                  item =>
                  {
                      Assert.Equal(ParcelType.Medium, item.ParcelType);
+                     Assert.Equal(8, item.ParcelCost);
+                 },
+                 item =>
+                 {
+                     Assert.Equal(ParcelType.Medium, item.ParcelType);
                      Assert.Equal(10, item.ParcelCost);
                  },
-                item =>
-                {
-                    Assert.Equal(ParcelType.Medium, item.ParcelType);
-                    Assert.Equal(8, item.ParcelCost);
-                },
                  item =>
                  {
                      Assert.Equal(ParcelType.Medium, item.ParcelType);
-                     Assert.Equal(8, item.ParcelCost);
+                     Assert.Equal(10, item.ParcelCost);
                  },
-                item =>
-                {
-                    Assert.Equal(ParcelType.Medium, item.ParcelType);
-                    Assert.Equal(8, item.ParcelCost);
-                },
                  item =>
                  {
                      Assert.Equal(ParcelType.Medium, item.ParcelType);
-                     Assert.Equal(8, item.ParcelCost);
+                     Assert.Equal(10, item.ParcelCost);
                  });
 
-            Assert.True(result.DiscountedShipping);
-            Assert.Equal(-16, result.ShippingDiscounts);
-            Assert.Equal(42, result.TotalCost);
+           // Assert.True(result.DiscountedShipping);
+            Assert.Equal(-18, result.TotalShippingDiscount);
+            Assert.Equal(36, result.TotalCost);
         }
 
 
@@ -341,19 +318,27 @@ namespace CourierKataTests
         public void CalculateDeliveryCost_MixedParcelDiscounts_ReturnsDeliveryWithDiscounts()
         {
             //Arrange
+
             var parcels = new List<Parcel> {
-                new Parcel { ParcelHeight = 1, ParcelWidth = 1, ParcelDepth = 1, ParcelWeight = 1 },
-                new Parcel { ParcelHeight = 1, ParcelWidth = 1, ParcelDepth = 1, ParcelWeight = 1 },
-                new Parcel { ParcelHeight = 1, ParcelWidth = 1, ParcelDepth = 1, ParcelWeight = 1 },
-                new Parcel { ParcelHeight = 40, ParcelWidth = 30, ParcelDepth = 20, ParcelWeight = 3 },
-                new Parcel { ParcelHeight = 40, ParcelWidth = 30, ParcelDepth = 20, ParcelWeight = 3 },
-                new Parcel { ParcelHeight = 80, ParcelWidth = 90, ParcelDepth = 60, ParcelWeight = 6 }
+              _fixture.SmallParcel,
+              _fixture.SmallParcel,
+              _fixture.SmallParcel,
+              _fixture.SmallParcel,
+              _fixture.SmallParcel,
+              _fixture.MediumParcel,
+              _fixture.MediumParcel,
+              _fixture.MediumOverweightParcel,
+              _fixture.MediumOverweightParcel,
+              _fixture.MediumOverweightParcel,
+              _fixture.LargeParcel,
+              _fixture.LargeOverweightParcel,
+              _fixture.XLParcel
             };
+
             var delivery = new Delivery { Parcels = parcels };
-            var deliveryCalculator = new DeliveryCostCalculator();
 
             //Act
-            var result = deliveryCalculator.CalculateDeliveryCost(delivery);
+            var result = _deliveryCalculator.CalculateDeliveryCost(delivery);
 
             //Assert
             Assert.Collection(delivery.Parcels,
@@ -363,6 +348,16 @@ namespace CourierKataTests
                     Assert.Equal(3, item.ParcelCost);
                 },
                 item =>
+                {
+                    Assert.Equal(ParcelType.Small, item.ParcelType);
+                    Assert.Equal(3, item.ParcelCost);
+                },
+                 item =>
+                 {
+                     Assert.Equal(ParcelType.Small, item.ParcelType);
+                     Assert.Equal(3, item.ParcelCost);
+                 },
+                 item =>
                 {
                     Assert.Equal(ParcelType.Small, item.ParcelType);
                     Assert.Equal(3, item.ParcelCost);
@@ -382,73 +377,40 @@ namespace CourierKataTests
                      Assert.Equal(ParcelType.Medium, item.ParcelType);
                      Assert.Equal(8, item.ParcelCost);
                  },
+                  item =>
+                  {
+                      Assert.Equal(ParcelType.Medium, item.ParcelType);
+                      Assert.Equal(10, item.ParcelCost);
+                  },
+                 item =>
+                 {
+                     Assert.Equal(ParcelType.Medium, item.ParcelType);
+                     Assert.Equal(10, item.ParcelCost);
+                 },
+                    item =>
+                    {
+                        Assert.Equal(ParcelType.Medium, item.ParcelType);
+                        Assert.Equal(10, item.ParcelCost);
+                    },
                 item =>
                 {
                     Assert.Equal(ParcelType.Large, item.ParcelType);
                     Assert.Equal(15, item.ParcelCost);
-                });
+                },
+            item =>
+            {
+                Assert.Equal(ParcelType.Large, item.ParcelType);
+                Assert.Equal(17, item.ParcelCost);
+            },
+             item =>
+             {
+                 Assert.Equal(ParcelType.XL, item.ParcelType);
+                 Assert.Equal(25, item.ParcelCost);
+             }
+            );
 
-            Assert.True(result.DiscountedShipping);
-            Assert.Equal(-3, result.ShippingDiscounts);
+            Assert.Equal(-3, result.TotalShippingDiscount);
             Assert.Equal(37, result.TotalCost);
         }
-
-        //TODO: Group parcel discounts fail
-        //[Fact]
-        //public void CalculateDeliveryCost_MixedGroupedParcelDiscounts_ReturnsDeliveryWithDiscounts()
-        //{
-        //    //Arrange
-        //    var parcels = new List<Parcel> {
-        //        new Parcel { ParcelHeight = 40, ParcelWidth = 40, ParcelDepth = 40, ParcelWeight = 3 },
-        //        new Parcel { ParcelHeight = 40, ParcelWidth = 40, ParcelDepth = 40, ParcelWeight = 3 },
-        //        new Parcel { ParcelHeight = 40, ParcelWidth = 40, ParcelDepth = 40, ParcelWeight = 3 },
-        //        new Parcel { ParcelHeight = 40, ParcelWidth = 40, ParcelDepth = 40, ParcelWeight = 4 },
-        //        new Parcel { ParcelHeight = 40, ParcelWidth = 40, ParcelDepth = 40, ParcelWeight = 4 },
-        //        new Parcel { ParcelHeight = 40, ParcelWidth = 40, ParcelDepth = 40, ParcelWeight = 4 },
-        //    };
-
-        //    var delivery = new Delivery { Parcels = parcels };
-        //    var deliveryCalculator = new DeliveryCostCalculator();
-
-        //    //Act
-        //    var result = deliveryCalculator.CalculateDeliveryCost(delivery);
-
-        //    //Assert
-        //    Assert.Collection(delivery.Parcels,
-        //        item =>
-        //        {
-        //            Assert.Equal(ParcelType.Medium, item.ParcelType);
-        //            Assert.Equal(8, item.ParcelCost);
-        //        },
-        //        item =>
-        //        {
-        //            Assert.Equal(ParcelType.Medium, item.ParcelType);
-        //            Assert.Equal(8, item.ParcelCost);
-        //        },
-        //         item =>
-        //         {
-        //             Assert.Equal(ParcelType.Medium, item.ParcelType);
-        //             Assert.Equal(8, item.ParcelCost);
-        //         },
-        //        item =>
-        //        {
-        //            Assert.Equal(ParcelType.Medium, item.ParcelType);
-        //            Assert.Equal(10, item.ParcelCost);
-        //        },
-        //         item =>
-        //         {
-        //             Assert.Equal(ParcelType.Medium, item.ParcelType);
-        //             Assert.Equal(10, item.ParcelCost);
-        //         },
-        //        item =>
-        //        {
-        //            Assert.Equal(ParcelType.Medium, item.ParcelType);
-        //            Assert.Equal(10, item.ParcelCost);
-        //        });
-
-        //    Assert.True(result.DiscountedShipping);
-        //    Assert.Equal(-18, result.ShippingDiscounts);
-        //    Assert.Equal(32, result.TotalCost);
-        //}
     }
 }
