@@ -96,11 +96,6 @@ namespace CourierKataTests
            .With(p => p.ParcelWeight, 51)
            .Create();
 
-        public List<Parcel> CreateMany(int quantity)
-        {
-            return _fixture.CreateMany<Parcel>(quantity).ToList();
-        }
-
         public void Dispose()
         {
             _stream.Dispose();
