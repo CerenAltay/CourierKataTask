@@ -1,5 +1,6 @@
 ﻿namespace CourierKata.Consts
 {
+    
     public static class Constants
     {
         public const decimal SmallSizeCost = 3m;

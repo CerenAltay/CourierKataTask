@@ -86,7 +86,6 @@ namespace CourierKata
             return parcel;
         }
 
-
         private static decimal CalculateParcelCost(Parcel parcel)
         {
             if (IsParcelOverweight(parcel))
@@ -150,7 +149,6 @@ namespace CourierKata
             return isDiscounted;
         }
 
-
         private static decimal CalculateDiscounts(Delivery delivery)
         {
             var smallParcelDiscount = 0m;
@@ -163,11 +161,13 @@ namespace CourierKata
             if (HasSmallParcelDiscount(delivery))
             {
                 smallParcelDiscount = GetDiscount(delivery.Parcels, ParcelType.Small, Constants.DiscountedSmallParcelNo, out discountApplied);
+
                 discountAppliedSmallParcels = discountApplied;
             }
             if (HasParcelMediumDiscount(delivery))
             {
-                 mediumParcelDiscount = GetDiscount(delivery.Parcels, ParcelType.Medium, Constants.DiscountedMediumParcelNo, out discountApplied);
+                mediumParcelDiscount = GetDiscount(delivery.Parcels, ParcelType.Medium, Constants.DiscountedMediumParcelNo, out discountApplied);
+
                 discountAppliedMediumParcels = discountApplied;
             }
 
@@ -178,7 +178,7 @@ namespace CourierKata
 
             if (HasMixedParcelDiscount(delivery))
             {
-                 mixedParcelDiscount = GetDiscount(remainingParcels, null, Constants.DiscountedMixedParcelNo, out discountApplied);
+                mixedParcelDiscount = GetDiscount(remainingParcels, null, Constants.DiscountedMixedParcelNo, out discountApplied);
             }
 
             decimal discount = smallParcelDiscount + mediumParcelDiscount + mixedParcelDiscount;
@@ -196,19 +196,20 @@ namespace CourierKata
                 parcels = parcels.Where(p => p.ParcelType == parcelType).ToList();
             }
 
-             parcels = parcels.OrderByDescending(p => p.ParcelCost).ToList();
+            parcels = parcels.OrderByDescending(p => p.ParcelCost).ToList();
 
             var discountedQuantity = parcels.Count / discountedParcelNo;
 
             for (int i = 0; i < discountedQuantity; i++)
             {
                 var remainingParcels = parcels.Skip(i * discountedParcelNo).ToList();
-                decimal discount = - remainingParcels.ElementAt(discountedParcelNo-1).ParcelCost;
+
+                decimal discount = -remainingParcels.ElementAt(discountedParcelNo - 1).ParcelCost;
+
                 discountTotal += discount;
             }
 
-
-           discountedParcels = parcels.Take(discountedQuantity * discountedParcelNo).ToList();
+            discountedParcels = parcels.Take(discountedQuantity * discountedParcelNo).ToList();
 
             return discountTotal;
         }
