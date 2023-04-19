@@ -1,12 +1,7 @@
 ﻿namespace CourierKata.Consts
 {
-    public static class ParcelConstants
+    public static class Constants
     {
-        //public const string SmallSize = "Small";
-        //public const string MediumSize = "Medium";
-        //public const string LargeSize = "Large";
-        //public const string XLSize = "XL";
-        //public const string HeavyParcel = "Heavy";
         public const decimal SmallSizeCost = 3m;
         public const decimal MediumSizeCost = 8m;
         public const decimal LargeSizeCost = 15m;
@@ -17,6 +12,9 @@
         public const decimal LargeSizeWeightLimit = 6m;
         public const decimal XLWeightParcelLimit = 10m;
         public const decimal HeavyParcelWeightLimit = 50m;
+        public const int DiscountedSmallParcelNo = 4;
+        public const int DiscountedMediumParcelNo = 3;
+        public const int DiscountedMixedParcelNo = 5;
 
     }
 }

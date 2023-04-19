@@ -407,8 +407,8 @@ namespace CourierKataTests
              }
             );
 
-            Assert.Equal(-16, result.TotalShippingDiscount);
-            Assert.Equal(102, result.TotalCost);
+            Assert.Equal(-21, result.TotalShippingDiscount);
+            Assert.Equal(97, result.TotalCost);
         }
 
         [Fact]

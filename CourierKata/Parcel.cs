@@ -1,4 +1,7 @@
-﻿namespace CourierKata
+﻿using CourierKata.Consts;
+using CourierKata;
+
+namespace CourierKata
 {
     public class Parcel
     {

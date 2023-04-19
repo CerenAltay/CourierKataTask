@@ -4,7 +4,6 @@ namespace CourierKata
 {
     public class DeliveryCostCalculator
     {
-
         public Delivery CalculateDeliveryCost(Delivery delivery)
         {
             if (!delivery.Parcels.Any())
@@ -27,33 +26,19 @@ namespace CourierKata
 
                 if (discountedShipping)
                 {
-                    delivery.TotalShippingDiscount = GetDiscounts(delivery);
+                    delivery.TotalShippingDiscount = CalculateDiscounts(delivery);
                     delivery.TotalCost += delivery.TotalShippingDiscount;
                 }
 
                 if (delivery.SpeedyShipping)
                 {
-                    delivery.SpeedyShippingCost = CalculateSpeedyShippingParcelCost(delivery);
+                    delivery.SpeedyShippingCost = CalculateSpeedyShippingCost(delivery);
                     delivery.TotalCost += delivery.SpeedyShippingCost;
 
                 }
                 return delivery;
             }
         }
-
-        private static decimal CalculateParcelCost(Parcel parcel)
-        {
-
-            if (IsParcelOverweight(parcel))
-            {
-                //TODO: weight limit for XL parcels
-
-                parcel.ParcelCost += (parcel.ParcelWeight - parcel.ParcelWeightLimit) * 2m;
-            }
-
-            return parcel.ParcelCost;
-        }
-
 
         private static Parcel DefineParcel(Parcel parcel)
         {
@@ -65,33 +50,33 @@ namespace CourierKata
             if (parcel.ParcelWeight >= 50m)
             {
                 parcel.ParcelType = ParcelType.Heavy;
-                parcel.ParcelCost = ParcelConstants.HeavyParcelCost;
-                parcel.ParcelWeightLimit = ParcelConstants.HeavyParcelWeightLimit;
+                parcel.ParcelCost = Constants.HeavyParcelCost;
+                parcel.ParcelWeightLimit = Constants.HeavyParcelWeightLimit;
             }
             else if (parcel.ParcelHeight < 10 && parcel.ParcelHeight < 10 && parcel.ParcelDepth < 10)
             {
                 parcel.ParcelType = ParcelType.Small;
-                parcel.ParcelCost = ParcelConstants.SmallSizeCost;
-                parcel.ParcelWeightLimit = ParcelConstants.SmallSizeWeightLimit;
+                parcel.ParcelCost = Constants.SmallSizeCost;
+                parcel.ParcelWeightLimit = Constants.SmallSizeWeightLimit;
 
             }
             else if (parcel.ParcelHeight < 50 && parcel.ParcelWidth < 50 && parcel.ParcelDepth < 50)
             {
                 parcel.ParcelType = ParcelType.Medium;
-                parcel.ParcelCost = ParcelConstants.MediumSizeCost;
-                parcel.ParcelWeightLimit = ParcelConstants.MediumSizeWeightLimit;
+                parcel.ParcelCost = Constants.MediumSizeCost;
+                parcel.ParcelWeightLimit = Constants.MediumSizeWeightLimit;
             }
             else if (parcel.ParcelHeight < 100 && parcel.ParcelWidth < 100 && parcel.ParcelDepth < 100)
             {
                 parcel.ParcelType = ParcelType.Large;
-                parcel.ParcelCost = ParcelConstants.LargeSizeCost;
-                parcel.ParcelWeightLimit = ParcelConstants.LargeSizeWeightLimit;
+                parcel.ParcelCost = Constants.LargeSizeCost;
+                parcel.ParcelWeightLimit = Constants.LargeSizeWeightLimit;
             }
             else if (parcel.ParcelHeight >= 100 || parcel.ParcelWidth >= 100 || parcel.ParcelDepth >= 100)
             {
                 parcel.ParcelType = ParcelType.XL;
-                parcel.ParcelCost = ParcelConstants.XLSizeCost;
-                parcel.ParcelWeightLimit = ParcelConstants.XLWeightParcelLimit;
+                parcel.ParcelCost = Constants.XLSizeCost;
+                parcel.ParcelWeightLimit = Constants.XLWeightParcelLimit;
             }
             else
             {
@@ -101,20 +86,37 @@ namespace CourierKata
             return parcel;
         }
 
-        private static decimal CalculateSpeedyShippingParcelCost(Delivery delivery)
-        {
-            delivery.SpeedyShippingCost = delivery.TotalCost;
 
-            return delivery.SpeedyShippingCost;
+        private static decimal CalculateParcelCost(Parcel parcel)
+        {
+            if (IsParcelOverweight(parcel))
+            {
+                decimal excessWeight = (parcel.ParcelWeight - parcel.ParcelWeightLimit);
+
+                //if (parcel.ParcelType == ParcelType.XL)
+                //{
+                //    parcel.ParcelCost = Math.Min(excessWeight * 2m, 50m) + Math.Max(excessWeight - 50m / 2m, 0m) * 1m;
+                //}
+
+                parcel.ParcelCost += excessWeight * 2m;
+            }
+
+            return parcel.ParcelCost;
         }
 
         private static bool IsParcelOverweight(Parcel parcel)
         {
-            //parcel.ParcelWeightLimit = GetWeightLimit(parcel.ParcelType);
 
             parcel.IsOverweight = parcel.ParcelWeight > parcel.ParcelWeightLimit;
 
             return parcel.IsOverweight;
+        }
+
+        private static decimal CalculateSpeedyShippingCost(Delivery delivery)
+        {
+            delivery.SpeedyShippingCost = delivery.TotalCost;
+
+            return delivery.SpeedyShippingCost;
         }
 
         private static bool IsDiscountedShipping(Delivery delivery)
@@ -149,60 +151,66 @@ namespace CourierKata
         }
 
 
-        private static decimal GetDiscounts(Delivery delivery)
+        private static decimal CalculateDiscounts(Delivery delivery)
         {
-            var smallParcels = delivery.Parcels
-               .Where(p => p.ParcelType == ParcelType.Small)
-               .OrderByDescending(p => p.ParcelCost).ToList();
+            var smallParcelDiscount = 0m;
+            var mediumParcelDiscount = 0m;
+            var mixedParcelDiscount = 0m;
+            List<Parcel> discountApplied = new();
+            List<Parcel> discountAppliedSmallParcels = new();
+            List<Parcel> discountAppliedMediumParcels = new();
 
-            decimal discountTotal = 0;
-
-            var discountedQuantitySmall = smallParcels.Count / 4;
-
-
-            for (int i = 0; i < discountedQuantitySmall; i++)
+            if (HasSmallParcelDiscount(delivery))
             {
-
-                var discountedSmallParcels = smallParcels.Skip(i * 4).ToList();
-                decimal smallDiscount = smallParcels.ElementAt(4-1).ParcelCost;
-                discountTotal += smallDiscount;
+                smallParcelDiscount = GetDiscount(delivery.Parcels, ParcelType.Small, Constants.DiscountedSmallParcelNo, out discountApplied);
+                discountAppliedSmallParcels = discountApplied;
             }
-            List<Parcel> discountAppliedSmallParcels = smallParcels.Take(discountedQuantitySmall * 4).ToList();
-
-            var mediumParcels = delivery.Parcels
-              .Where(p => p.ParcelType == ParcelType.Medium)
-              .OrderByDescending(p => p.ParcelCost).ToList();
-
-            var discountedQuantityMedium = mediumParcels.Count / 3;
-
-
-            for (int i = 0; i < discountedQuantityMedium; i++)
+            if (HasParcelMediumDiscount(delivery))
             {
-                var discountedMediumParcels = mediumParcels.Skip(i*3).ToList();
-                decimal mediumDiscount = discountedMediumParcels.ElementAt(3-1).ParcelCost;
-                discountTotal += mediumDiscount;
+                 mediumParcelDiscount = GetDiscount(delivery.Parcels, ParcelType.Medium, Constants.DiscountedMediumParcelNo, out discountApplied);
+                discountAppliedMediumParcels = discountApplied;
             }
-
-    
-            List<Parcel> discountAppliedMediumParcels = mediumParcels.Take(discountedQuantityMedium * 3).ToList();
 
             List<Parcel> remainingParcels = delivery.Parcels
                 .Except(discountAppliedSmallParcels)
                 .Except(discountAppliedMediumParcels)
                 .OrderByDescending(p => p.ParcelCost).ToList();
 
-            var discountedQuantityMixed = remainingParcels.Count / 5;
-
-
-            for (int i = 0; i < discountedQuantityMixed; i++)
+            if (HasMixedParcelDiscount(delivery))
             {
-                decimal mixedParcelDiscount = remainingParcels.ElementAt(5).ParcelCost;
-                discountTotal += mixedParcelDiscount;
+                 mixedParcelDiscount = GetDiscount(remainingParcels, null, Constants.DiscountedMixedParcelNo, out discountApplied);
             }
 
-            return -discountTotal;
+            decimal discount = smallParcelDiscount + mediumParcelDiscount + mixedParcelDiscount;
+
+            return discount;
 
         }
 
+        private static decimal GetDiscount(List<Parcel> parcels, ParcelType? parcelType, int discountedParcelNo, out List<Parcel> discountedParcels)
+        {
+            decimal discountTotal = 0;
+
+            if (parcelType != null && parcels.Any())
+            {
+                parcels = parcels.Where(p => p.ParcelType == parcelType).ToList();
+            }
+
+             parcels = parcels.OrderByDescending(p => p.ParcelCost).ToList();
+
+            var discountedQuantity = parcels.Count / discountedParcelNo;
+
+            for (int i = 0; i < discountedQuantity; i++)
+            {
+                var remainingParcels = parcels.Skip(i * discountedParcelNo).ToList();
+                decimal discount = - remainingParcels.ElementAt(discountedParcelNo-1).ParcelCost;
+                discountTotal += discount;
+            }
+
+
+           discountedParcels = parcels.Take(discountedQuantity * discountedParcelNo).ToList();
+
+            return discountTotal;
+        }
     }
 }
